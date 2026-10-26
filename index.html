@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Charge the BYD: route quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Semi+Condensed:wght@500;600;700;800&family=Figtree:wght@400;500;600;700;800&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+  --bg:#e9eff3; --surface:#ffffff; --ink:#13212e; --sub:#56687a; --hair:#d6e0e7;
+  --charge:#00976f; --charge-soft:#dcf3ea; --road:#2357c9; --road-soft:#e3ebfb;
+  --miss:#c9452a; --miss-soft:#fbe7e1; --cell:#f2f6f8;
+  --display:"Saira Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --text:"Figtree","Helvetica Neue",Arial,sans-serif;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e161d; --surface:#16212b; --ink:#e6eef4; --sub:#9db0c0; --hair:#273644;
+    --charge:#2fd19f; --charge-soft:#123a30; --road:#7aa2ff; --road-soft:#1b2b4a;
+    --miss:#ff8a6b; --miss-soft:#3d221b; --cell:#1c2934;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e161d; --surface:#16212b; --ink:#e6eef4; --sub:#9db0c0; --hair:#273644;
+  --charge:#2fd19f; --charge-soft:#123a30; --road:#7aa2ff; --road-soft:#1b2b4a;
+  --miss:#ff8a6b; --miss-soft:#3d221b; --cell:#1c2934;
+  color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--text);font-size:16px;line-height:1.45}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button:focus-visible{outline:3px solid var(--road);outline-offset:3px;border-radius:10px}
+.page{max-width:560px;margin:0 auto;padding:20px max(18px,env(safe-area-inset-left,0px)) 120px max(18px,env(safe-area-inset-right,0px))}
+
+/* hero: the battery */
+.app{display:flex;justify-content:space-between;align-items:center;color:var(--sub);font-weight:600;font-size:14px}
+.app b{color:var(--ink);font-family:var(--display);font-size:18px;letter-spacing:.01em}
+.hero{margin-top:18px;background:var(--surface);border:1px solid var(--hair);border-radius:24px;padding:22px 20px 20px}
+.pct{font-family:var(--display);font-weight:800;font-size:clamp(72px,22vw,108px);line-height:.9;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.pct small{font-size:.38em;font-weight:700;margin-left:4px;color:var(--sub)}
+.batt{position:relative;margin-top:14px;height:46px;border:3px solid var(--ink);border-radius:12px;padding:4px;display:flex;gap:4px}
+.batt::after{content:"";position:absolute;right:-11px;top:12px;width:7px;height:16px;background:var(--ink);border-radius:0 4px 4px 0}
+.seg{flex:1;border-radius:4px;background:var(--cell);transition:background .35s}
+.seg.on{background:var(--charge)}
+.seg.on.pulse{animation:zap .6s}
+@keyframes zap{30%{filter:brightness(1.6);transform:scaleY(1.12)}}
+.lede{margin:14px 0 0;color:var(--sub);font-size:15px}
+
+/* route */
+.leg{margin:30px 0 4px;font-family:var(--display);font-weight:700;font-size:21px}
+.legsub{color:var(--sub);font-size:14px;margin-bottom:6px}
+.route{position:relative}
+.route::before{content:"";position:absolute;left:15px;top:14px;bottom:14px;width:3px;background:var(--hair);border-radius:3px}
+.stop{position:relative;display:grid;grid-template-columns:34px 1fr 24px;gap:12px;align-items:center;width:100%;text-align:left;padding:12px 0}
+.dot{position:relative;z-index:1;width:33px;height:33px;border-radius:50%;background:var(--surface);border:3px solid var(--hair);display:grid;place-items:center;font-weight:800;font-size:15px;color:#fff}
+.stop.ok .dot{background:var(--charge);border-color:var(--charge)}
+.stop.no .dot{background:var(--miss);border-color:var(--miss)}
+.stop.next .dot{border-color:var(--road);box-shadow:0 0 0 5px var(--road-soft)}
+.where{font-weight:800;font-size:16px;line-height:1.25}
+.tease{color:var(--sub);font-size:14px;margin-top:2px}
+.chev{color:var(--sub);font-size:22px;font-weight:700}
+.stop:hover .where{text-decoration:underline;text-underline-offset:3px}
+
+/* bottom bar */
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:10;padding:10px max(14px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px));background:linear-gradient(to top,var(--bg) 70%,transparent)}
+.bar button{display:flex;align-items:center;gap:12px;width:100%;max-width:524px;margin:0 auto;background:var(--road);color:#fff;border-radius:16px;padding:15px 18px;font-weight:800;font-size:16px}
+.bar .meta{margin-left:auto;font-weight:700;opacity:.9;font-size:14px}
+.bar button.done{background:var(--charge)}
+
+/* sheet */
+.scrim{position:fixed;inset:0;z-index:20;background:rgba(5,12,18,.5);display:flex;align-items:flex-end;justify-content:center}
+.sheet{width:min(560px,100%);max-height:92%;overflow:auto;background:var(--surface);border-radius:24px 24px 0 0;padding:10px max(20px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px));animation:up .26s cubic-bezier(.2,.9,.3,1)}
+@keyframes up{from{transform:translateY(100%)}}
+.grab{width:44px;height:5px;border-radius:5px;background:var(--hair);margin:0 auto 14px}
+.shead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.sheet .kick{color:var(--road);font-weight:800;font-size:14px}
+.sheet h2{margin:4px 0 0;font-size:21px;line-height:1.3}
+.x{flex:none;width:36px;height:36px;border-radius:50%;background:var(--cell);font-size:20px;font-weight:700;display:grid;place-items:center}
+.opts{margin-top:16px;display:grid;gap:10px}
+.opt{display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:15px 16px;border:2px solid var(--hair);border-radius:14px;font-weight:700}
+.opt:not(:disabled):hover{border-color:var(--road)}
+.opt .r{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--hair);display:grid;place-items:center;font-size:13px;color:#fff}
+.opt.right{border-color:var(--charge);background:var(--charge-soft)} .opt.right .r{background:var(--charge);border-color:var(--charge)}
+.opt.wrong{border-color:var(--miss);background:var(--miss-soft)} .opt.wrong .r{background:var(--miss);border-color:var(--miss)}
+.opt:disabled{cursor:default}
+.fb{margin-top:14px;border-radius:14px;padding:14px 16px;font-size:15px}
+.fb.ok{background:var(--charge-soft)} .fb.no{background:var(--miss-soft)}
+.fb b{display:block;font-size:16px;margin-bottom:4px}
+.go{margin-top:16px;width:100%;background:var(--road);color:#fff;border-radius:14px;padding:15px;font-weight:800;font-size:16px}
+
+/* result: full-screen, colour-coded, readable across a room */
+.result{position:fixed;inset:0;z-index:30;overflow:auto;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:calc(24px + env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px))}
+.result.green{background:#08795a} .result.amber{background:#985a00} .result.red{background:#b0351f}
+.result .up{font-family:var(--display);font-weight:800;font-size:clamp(22px,6vw,30px);background:rgba(255,255,255,.18);border-radius:999px;padding:8px 20px}
+.result .big{font-family:var(--display);font-weight:800;font-size:clamp(140px,48vw,260px);line-height:.85;margin-top:14px;font-variant-numeric:tabular-nums}
+.result .big small{font-size:.32em;margin-left:4px}
+.result h2{font-family:var(--display);font-size:clamp(34px,10vw,56px);margin:10px 0 4px;line-height:1}
+.result p{margin:0 auto;max-width:420px;font-weight:600;opacity:.92}
+.rbatt{position:relative;width:min(320px,80vw);height:44px;margin:22px auto 0;border:3px solid #fff;border-radius:12px;padding:4px;display:flex;gap:4px}
+.rbatt::after{content:"";position:absolute;right:-11px;top:11px;width:7px;height:16px;background:#fff;border-radius:0 4px 4px 0}
+.rbatt i{flex:1;border-radius:4px;background:rgba(255,255,255,.2)} .rbatt i.on{background:#fff}
+.take{margin-top:20px;max-width:420px;font-size:15px;opacity:.9}
+.rbtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+.rbtns button{border-radius:999px;padding:12px 20px;font-weight:800;background:#fff;color:#13212e}
+.rbtns button.alt{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.7)}
+.result button:focus-visible{outline-color:#fff}
+
+/* presenter QR */
+.qrview{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:24px max(18px,env(safe-area-inset-right,0px)) 24px max(18px,env(safe-area-inset-left,0px))}
+.qrview h1{margin:0;font-family:var(--display);font-weight:800;font-size:clamp(44px,7vw,84px);line-height:1}
+.qrview p{margin:0;color:var(--sub);font-weight:600;font-size:clamp(16px,2vw,22px)}
+.qrbox{background:#fff;padding:20px;border-radius:24px;border:1px solid var(--hair)}
+.qrbox img,.qrbox canvas{display:block;width:min(52vh,78vw)!important;height:auto!important;image-rendering:pixelated}
+.qrview .link{font-size:14px;color:var(--sub);word-break:break-all}
+.qrview button,.board .btns button{border-radius:999px;padding:10px 18px;font-weight:800;background:var(--surface);border:2px solid var(--hair)}
+.qrview .btns,.board .btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.qrview button.primary{background:var(--road);border-color:var(--road);color:#fff}
+
+/* presenter results board: readable on a projector */
+.board{max-width:1200px;margin:0 auto;padding:28px max(18px,env(safe-area-inset-right,0px)) 32px max(18px,env(safe-area-inset-left,0px))}
+.board header{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.board h1{margin:0;font-family:var(--display);font-weight:800;font-size:clamp(34px,5vw,60px);line-height:1}
+.board .count{color:var(--sub);font-weight:700;font-size:clamp(16px,1.8vw,22px)}
+.board .count b{color:var(--ink);font-family:var(--display);font-size:1.6em}
+.qgrid{margin-top:22px;display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.qcard{background:var(--surface);border:1px solid var(--hair);border-radius:20px;padding:18px 20px}
+.qcard .kick{color:var(--road);font-weight:800;font-size:14px}
+.qcard h2{margin:4px 0 12px;font-size:clamp(17px,1.5vw,20px);line-height:1.3}
+.brow{margin-top:10px}
+.brow .lab{display:flex;justify-content:space-between;gap:10px;font-weight:700;font-size:15px}
+.brow .lab span:last-child{font-variant-numeric:tabular-nums;color:var(--sub)}
+.track{margin-top:5px;height:14px;border-radius:7px;background:var(--cell);overflow:hidden}
+.fill{height:100%;border-radius:7px;background:var(--sub);transition:width .5s}
+.brow.right .fill{background:var(--charge)} .brow.right .lab span:first-child{color:var(--charge)}
+.brow.trap .fill{background:var(--miss)}
+.tag{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:800;background:var(--miss-soft);color:var(--miss);vertical-align:1px}
+.board .note{margin-top:18px;color:var(--sub);font-weight:600;text-align:center}
+.board .btns{margin-top:18px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// The QR code points at wherever this page is hosted.
+const SHARE_URL = location.origin + location.pathname;
+const LEGS = [
+ {name:"Leg 1: where it started", sub:"Three journeys, not one", stops:[
+  {id:"s1", where:"The three journeys", tease:"Which came first?",
+   q:"BYD has three international journeys. Which one came first?",
+   opts:["Commercial vehicles (buses)","Batteries and electronics","Passenger EVs"], a:1,
+   verdict:"Batteries and electronics.", why:"BYD set up overseas subsidiaries in 1998 to 99 to serve global phone makers, years before its buses or cars went abroad."}
+ ]},
+ {name:"Leg 2: why go abroad", sub:"Latecomer motives", stops:[
+  {id:"m1", where:"The four motives", tease:"Hold that thought",
+   q:"Three of BYD’s four motives for going abroad are about what, rather than market knowledge?",
+   opts:["Culture and language","Technology and talent","Policy and price"], a:2,
+   verdict:"Policy and price.", why:"Price wars at home, richer prices abroad, tariffs and incentives. Only learning-driven expansion fits Uppsala’s logic."}
+ ]},
+ {name:"Leg 3: before the cars", sub:"What buses could and couldn’t teach", stops:[
+  {id:"u1", where:"Buses to cars", tease:"What didn’t transfer?",
+   q:"Which of these did BYD’s bus experience NOT prepare it for in passenger cars?",
+   opts:["Branding to individual buyers","Foreign vehicle rules","Running factories abroad"], a:0,
+   verdict:"Branding to individual buyers.", why:"A bus has one customer, a city or operator. A car has thousands of buyers who care about brand, dealers and after-sales."}
+ ]},
+ {name:"Leg 4: how to enter", sub:"Choosing an entry mode", stops:[
+  {id:"f1", where:"The entry-mode table", tease:"Why not a ladder?",
+   q:"Why are BYD’s entry options “not a ladder”?",
+   opts:["Every option costs about the same","Capital and control are different things","BYD skipped every option"], a:1,
+   verdict:"Capital and control are different things.", why:"A joint venture can need heavy investment yet give only shared control. Choosing a mode is a trade-off, not a climb."}
+ ]},
+ {name:"Final charge: the verdict", sub:"One line to take home", stops:[
+  {id:"z1", where:"The verdict", tease:"Ladder or map?",
+   q:"According to our verdict, what does the Uppsala model explain best about BYD?",
+   opts:["Which markets it entered first","How fast it expanded","Its steps inside each market"], a:2,
+   verdict:"Its steps inside each market.", why:"For a latecomer, Uppsala is a ladder, not a map. BYD still sold before it built, but chose markets and moved at speed for other reasons."}
+ ]}
+];
+const ALL = LEGS.flatMap(l=>l.stops);
+const N = ALL.length;
+let ans = {};
+try{ ans = JSON.parse(localStorage.getItem("byd-route-quiz-5c")||"{}") || {}; }catch(e){ ans = {}; }
+const save=()=>{ try{ localStorage.setItem("byd-route-quiz-5c",JSON.stringify(ans)); }catch(e){} };
+// One anonymous id per device, so re-answering replaces that device's vote instead of adding one.
+let cid="";
+try{ cid=localStorage.getItem("byd-route-quiz-cid")||""; }catch(e){}
+if(!/^[a-z0-9]{8,40}$/.test(cid)){ cid=Array.from(crypto.getRandomValues(new Uint8Array(12)),b=>(b%36).toString(36)).join(""); try{ localStorage.setItem("byd-route-quiz-cid",cid); }catch(e){} }
+const send=(q,i)=>{ fetch("/api/answers",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({cid,q,i}),keepalive:true}).catch(()=>{}); };
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const score=()=>ALL.filter(s=>ans[s.id]===s.a).length;
+const answered=()=>ALL.filter(s=>s.id in ans).length;
+const pct=()=>Math.round(score()/N*100);
+const nextStop=()=>ALL.find(s=>!(s.id in ans));
+let lastPulse=-1;
+
+let poll=null;
+function render(){
+  clearInterval(poll); poll=null;
+  if(location.hash==="#qr"){ renderQR(); return; }
+  if(location.hash==="#results"){ renderResults(); return; }
+  const nx=nextStop(), c=score(), done=answered();
+  let n=0;
+  const route=LEGS.map(l=>`
+    <h2 class="leg">${esc(l.name)}</h2><div class="legsub">${esc(l.sub)}</div>
+    <div class="route">${l.stops.map(s=>{ n++; const st=(s.id in ans)?(ans[s.id]===s.a?"ok":"no"):(nx&&nx.id===s.id?"next":"");
+      const mark=st==="ok"?"✓":st==="no"?"✕":"";
+      return `<button class="stop ${st}" data-id="${s.id}" aria-label="Stop ${n}: ${esc(s.where)}${st==="ok"?", answered correctly":st==="no"?", answered":""}"><span class="dot">${mark}</span><span><span class="where">${esc(s.where)}</span><span class="tease" style="display:block">${esc(s.tease)}</span></span><span class="chev" aria-hidden="true">›</span></button>`;
+    }).join("")}</div>`).join("");
+  const segs=Array.from({length:N},(_,i)=>`<div class="seg ${i<c?"on":""} ${i===c-1&&lastPulse===c?"pulse":""}"></div>`).join("");
+  document.getElementById("app").innerHTML=`
+  <main class="page">
+    <div class="app"><b>BYD route quiz</b><span>MGMT623 · Week 8</span></div>
+    <section class="hero" aria-label="Battery charge">
+      <div class="pct">${pct()}<small>%</small></div>
+      <div class="batt" role="img" aria-label="Battery ${pct()} percent charged">${segs}</div>
+      <p class="lede">Drive BYD’s real route abroad. Every right answer charges your battery by ${Math.round(100/N)}%. Wrong answers don’t drain it.</p>
+    </section>
+    ${route}
+  </main>
+  <div class="bar"><button id="barbtn" class="${nx?"":"done"}">${nx?(done?"Next stop":"Start driving"):"See your result"}<span class="meta">${done} of ${N} stops</span></button></div>`;
+  document.querySelectorAll(".stop").forEach(b=>b.onclick=()=>openStop(b.dataset.id));
+  document.getElementById("barbtn").onclick=()=>{ const s=nextStop(); s?openStop(s.id):showResult(); };
+}
+
+function openStop(id){
+  const s=ALL.find(x=>x.id===id), idx=ALL.indexOf(s), has=id in ans;
+  const scrim=document.createElement("div"); scrim.className="scrim";
+  scrim.innerHTML=`<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="qh">
+    <div class="grab"></div>
+    <div class="shead"><div><div class="kick">Stop ${idx+1} of ${N} · ${esc(s.where)}</div><h2 id="qh">${esc(s.q)}</h2></div><button class="x" aria-label="Close">×</button></div>
+    <div class="opts">${s.opts.map((o,i)=>`<button class="opt" data-i="${i}"><span class="r"></span>${esc(o)}</button>`).join("")}</div>
+    <div class="after"></div></div>`;
+  document.body.appendChild(scrim);
+  const close=()=>{ scrim.remove(); render(); };
+  scrim.querySelector(".x").onclick=close;
+  scrim.addEventListener("click",e=>{ if(e.target===scrim) close(); });
+  document.addEventListener("keydown",function k(e){ if(e.key==="Escape"){ document.removeEventListener("keydown",k); if(document.body.contains(scrim)) close(); } });
+  const show=pick=>{
+    scrim.querySelectorAll(".opt").forEach(b=>{ const i=+b.dataset.i; b.disabled=true;
+      if(i===s.a){ b.classList.add("right"); b.querySelector(".r").textContent="✓"; }
+      else if(i===pick){ b.classList.add("wrong"); b.querySelector(".r").textContent="✕"; } });
+    const ok=pick===s.a, nx=nextStop();
+    scrim.querySelector(".after").innerHTML=`<div class="fb ${ok?"ok":"no"}" role="status"><b>${ok?"Charged. ":"Not quite. "}${esc(s.verdict)}</b>${esc(s.why)}</div>
+      <button class="go">${nx?"Drive to next stop":"See your result"}</button>`;
+    scrim.querySelector(".go").onclick=()=>{ scrim.remove(); const n2=nextStop(); if(n2){ render(); openStop(n2.id); } else { render(); showResult(); } };
+    scrim.querySelector(".go").focus();
+  };
+  if(has){ show(ans[id]); }
+  else scrim.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{ const i=+b.dataset.i; ans[id]=i; save(); send(id,i); if(i===s.a) lastPulse=score(); show(i); });
+  setTimeout(()=>{ const f=scrim.querySelector(has?".go":".opt"); f&&f.focus(); },30);
+}
+
+function tier(c){
+  if(c===N) return ["green","Fully charged","Every stop right. You could present this case yourself."];
+  if(c>=Math.ceil(N*0.7)) return ["green","Highway range","You know where BYD went and why."];
+  if(c>=Math.ceil(N*0.4)) return ["amber","City range","The map is the tricky part, and that’s our point."];
+  return ["red","Find a charger","Most people guess like Uppsala. BYD didn’t follow it."];
+}
+function showResult(){
+  const c=score(), p=pct(), [col,h,sub]=tier(c);
+  const el=document.createElement("div"); el.className="result "+col; el.setAttribute("role","dialog"); el.setAttribute("aria-modal","true"); el.setAttribute("aria-label","Your result: "+p+" percent");
+  el.innerHTML=`<div class="up">Hold your phone up!</div>
+    <div class="big">${p}<small>%</small></div>
+    <h2>${h}</h2><p>${c} of ${N} stops charged. ${esc(sub)}</p>
+    <div class="rbatt" aria-hidden="true">${Array.from({length:N},(_,i)=>`<i class="${i<c?"on":""}"></i>`).join("")}</div>
+    <p class="take">Uppsala explains BYD’s steps inside each market, not which markets it chose or how fast it moved.</p>
+    <div class="rbtns"><button class="alt" id="rev">Review answers</button><button id="again">Drive again</button></div>`;
+  document.body.appendChild(el);
+  el.querySelector("#rev").onclick=()=>{ el.remove(); render(); };
+  el.querySelector("#again").onclick=()=>{ ans={}; save(); lastPulse=-1; el.remove(); render(); scrollTo(0,0); };
+  el.querySelector("#again").focus();
+}
+
+function renderQR(){
+  const url = SHARE_URL || location.href.split("#")[0];
+  document.getElementById("app").innerHTML=`<div class="qrview"><h1>Scan to charge the BYD</h1><p>${N} stops, about a minute. How charged can you get?</p><div class="qrbox"><div id="qrc"></div></div><div class="link">${esc(url)}</div><div class="btns"><button id="back">Open the quiz here</button><button id="res" class="primary">Show class results</button></div></div>`;
+  try{ new QRCode(document.getElementById("qrc"),{text:url,width:512,height:512,correctLevel:QRCode.CorrectLevel.M}); }
+  catch(e){ document.getElementById("qrc").textContent="QR code unavailable. Share the link below."; }
+  document.getElementById("back").onclick=()=>{ location.hash=""; };
+  document.getElementById("res").onclick=()=>{ location.hash="#results"; };
+}
+
+function renderResults(){
+  document.getElementById("app").innerHTML=`<main class="board">
+    <header><h1>How the room answered</h1><div class="count" id="rcount">Loading…</div></header>
+    <div class="qgrid" id="rgrid"></div>
+    <p class="note" id="rnote" role="status"></p>
+    <div class="btns"><button id="toqr">Back to QR code</button><button id="clear">Clear results</button></div></main>`;
+  document.getElementById("toqr").onclick=()=>{ location.hash="#qr"; };
+  document.getElementById("clear").onclick=async()=>{
+    if(!confirm("Clear every answer collected so far?")) return;
+    let r=await fetch("/api/answers",{method:"DELETE"}).catch(()=>null);
+    if(r&&r.status===403){ const k=prompt("Enter the reset key"); if(!k) return; r=await fetch("/api/answers?key="+encodeURIComponent(k),{method:"DELETE"}).catch(()=>null); }
+    if(!r||!r.ok) document.getElementById("rnote").textContent="Couldn’t clear the results"+(r&&r.status===403?": wrong key.":".");
+    load();
+  };
+  const load=async()=>{
+    let data=null;
+    try{ const r=await fetch("/api/answers",{cache:"no-store"}); if(r.ok) data=await r.json(); }catch(e){}
+    if(location.hash!=="#results") return;
+    const note=document.getElementById("rnote");
+    if(!data){ note.textContent="Live results need the hosted version with storage connected."; document.getElementById("rcount").textContent=""; return; }
+    note.textContent="Updates every few seconds.";
+    document.getElementById("rcount").innerHTML=`<b>${data.devices}</b> ${data.devices===1?"phone":"phones"} answered`;
+    document.getElementById("rgrid").innerHTML=ALL.map((s,k)=>{
+      const c=(data.counts&&data.counts[s.id])||s.opts.map(()=>0), tot=c.reduce((a,b)=>a+b,0);
+      // the most-picked wrong option, if it drew anyone
+      let trap=-1; c.forEach((n,i)=>{ if(i!==s.a&&n>0&&(trap<0||n>c[trap])) trap=i; });
+      return `<section class="qcard"><div class="kick">Stop ${k+1} · ${esc(s.where)}</div><h2>${esc(s.q)}</h2>
+        ${s.opts.map((o,i)=>{ const p=tot?Math.round(c[i]/tot*100):0;
+          return `<div class="brow ${i===s.a?"right":i===trap?"trap":""}"><div class="lab"><span>${i===s.a?"✓ ":""}${esc(o)}${i===trap?`<span class="tag">Top wrong answer</span>`:""}</span><span>${p}% · ${c[i]}</span></div><div class="track"><div class="fill" style="width:${p}%"></div></div></div>`;
+        }).join("")}</section>`;
+    }).join("");
+  };
+  load(); poll=setInterval(load,3000);
+}
+window.addEventListener("hashchange",render);
+render();
+</script>
+</body>
+</html>

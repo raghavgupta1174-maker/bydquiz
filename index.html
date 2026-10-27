@@ -156,40 +156,40 @@ const SHARE_URL = location.origin + location.pathname;
 const LEGS = [
  {name:"Leg 1: where it started", sub:"Three journeys, not one", stops:[
   {id:"s1", where:"The three journeys", tease:"Which came first?",
-   q:"BYD has three international journeys. Which one came first?",
-   opts:["Commercial vehicles (buses)","Batteries and electronics","Passenger EVs"], a:1,
+   q:"Which journey came first?",
+   opts:["Electric buses","Batteries and electronics","Petrol cars"], a:1,
    verdict:"Batteries and electronics.", why:"BYD set up overseas subsidiaries in 1998 to 99 to serve global phone makers, years before its buses or cars went abroad."}
  ]},
  {name:"Leg 2: why go abroad", sub:"Latecomer motives", stops:[
   {id:"m1", where:"The four motives", tease:"Hold that thought",
-   q:"Three of BYD’s four motives for going abroad are about what, rather than market knowledge?",
-   opts:["Culture and language","Technology and talent","Policy and price"], a:2,
+   q:"Most of BYD’s reasons for going abroad were about what?",
+   opts:["Culture and language","Weather and climate","Policy and price"], a:2,
    verdict:"Policy and price.", why:"Price wars at home, richer prices abroad, tariffs and incentives. Only learning-driven expansion fits Uppsala’s logic."}
  ]},
  {name:"Leg 3: before the cars", sub:"What buses could and couldn’t teach", stops:[
   {id:"u1", where:"Buses to cars", tease:"What didn’t transfer?",
-   q:"Which of these did BYD’s bus experience NOT prepare it for in passenger cars?",
-   opts:["Branding to individual buyers","Foreign vehicle rules","Running factories abroad"], a:0,
-   verdict:"Branding to individual buyers.", why:"A bus has one customer, a city or operator. A car has thousands of buyers who care about brand, dealers and after-sales."}
+   q:"Buses to cars: what did BYD still have to learn?",
+   opts:["Selling to individual car buyers","Following foreign vehicle rules","Making batteries"], a:0,
+   verdict:"Selling to individual car buyers.", why:"A bus has one customer, a city or operator. A car has thousands of buyers who care about brand, dealers and after-sales."}
  ]},
  {name:"Leg 4: how to enter", sub:"Choosing an entry mode", stops:[
   {id:"f1", where:"The entry-mode table", tease:"Why not a ladder?",
    q:"Why are BYD’s entry options “not a ladder”?",
-   opts:["Every option costs about the same","Capital and control are different things","BYD skipped every option"], a:1,
+   opts:["Every option costs about the same","Capital and control are different things","Factories are always the cheapest option"], a:1,
    verdict:"Capital and control are different things.", why:"A joint venture can need heavy investment yet give only shared control. Choosing a mode is a trade-off, not a climb."}
  ]},
  {name:"Final charge: the verdict", sub:"One line to take home", stops:[
   {id:"z1", where:"The verdict", tease:"Ladder or map?",
-   q:"According to our verdict, what does the Uppsala model explain best about BYD?",
-   opts:["Which markets it entered first","How fast it expanded","Its steps inside each market"], a:2,
+   q:"What does Uppsala explain best about BYD?",
+   opts:["Which markets it entered first","Its car colours","Its steps inside each market"], a:2,
    verdict:"Its steps inside each market.", why:"For a latecomer, Uppsala is a ladder, not a map. BYD still sold before it built, but chose markets and moved at speed for other reasons."}
  ]}
 ];
 const ALL = LEGS.flatMap(l=>l.stops);
 const N = ALL.length;
 let ans = {};
-try{ ans = JSON.parse(localStorage.getItem("byd-route-quiz-5c")||"{}") || {}; }catch(e){ ans = {}; }
-const save=()=>{ try{ localStorage.setItem("byd-route-quiz-5c",JSON.stringify(ans)); }catch(e){} };
+try{ ans = JSON.parse(localStorage.getItem("byd-route-quiz-5d")||"{}") || {}; }catch(e){ ans = {}; }
+const save=()=>{ try{ localStorage.setItem("byd-route-quiz-5d",JSON.stringify(ans)); }catch(e){} };
 // One anonymous id per device, so re-answering replaces that device's vote instead of adding one.
 let cid="";
 try{ cid=localStorage.getItem("byd-route-quiz-cid")||""; }catch(e){}
@@ -282,11 +282,10 @@ function showResult(){
 
 function renderQR(){
   const url = SHARE_URL || location.href.split("#")[0];
-  document.getElementById("app").innerHTML=`<div class="qrview"><h1>Scan to charge the BYD</h1><p>${N} stops, about a minute. How charged can you get?</p><div class="qrbox"><div id="qrc"></div></div><div class="link">${esc(url)}</div><div class="btns"><button id="back">Open the quiz here</button><button id="res" class="primary">Show class results</button></div></div>`;
+  document.getElementById("app").innerHTML=`<div class="qrview"><h1>Scan to charge the BYD</h1><p>${N} stops, about a minute. How charged can you get?</p><div class="qrbox"><div id="qrc"></div></div><div class="link">${esc(url)}</div><div class="btns"><button id="back">Open the quiz here</button></div></div>`;
   try{ new QRCode(document.getElementById("qrc"),{text:url,width:512,height:512,correctLevel:QRCode.CorrectLevel.M}); }
   catch(e){ document.getElementById("qrc").textContent="QR code unavailable. Share the link below."; }
   document.getElementById("back").onclick=()=>{ location.hash=""; };
-  document.getElementById("res").onclick=()=>{ location.hash="#results"; };
 }
 
 function renderResults(){
